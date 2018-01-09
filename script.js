@@ -11,7 +11,8 @@ var app = new Vue({
       this.points.push([this.x, this.y]);
       if(this.points.length > 1) {
         var key = this.points.length;
-        this.lines.push([this.points[key-2].concat(this.points[key - 1])]);
+        this.lines.push(this.points[key-2].concat(this.points[key - 1]));
+        console.log(this.lines);
       }
     }
   }
