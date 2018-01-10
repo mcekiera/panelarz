@@ -9,8 +9,8 @@ var app = new Vue({
     lineId: 1,
     tab: 'start',
     plan: {
-      width: 10000,
-      height: 10000
+      width: 5000,
+      height: 5000
     }
   },
   methods: {
@@ -92,6 +92,7 @@ var app = new Vue({
     }
   },
   updated: function () {
+    console.log(typeof this.plan.width)
     var pan = svgPanZoom('#js-svg', {
       zoomEnabled: true,
       controlIconsEnabled: false,
@@ -100,6 +101,5 @@ var app = new Vue({
       minZoom: 0.5,
       maxZoom: 2
     });
-    pan.zoom(1);
   }
 });
