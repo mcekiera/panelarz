@@ -4,19 +4,19 @@ var app = new Vue({
     points: [[0,0]],
     prev: [0,0],
     lines: [],
-    x: {
-      val: 0,
-      sum: 0,
-      min: 0
-    },
-    y: {
-      val: 0,
-      sum: 0,
-      min: 0
-    },
-    lineId: 1
+    x: { val: 0, sum: 0, min: 0 },
+    y: { val: 0, sum: 0, min: 0 },
+    lineId: 1,
+    tab: 'start',
+    plan: {
+      width: 10000,
+      height: 10000
+    }
   },
   methods: {
+    setTab: function (tab) {
+      this.tab = tab;
+    },
     addPoint: function() {
       var xNew = parseInt(this.x.val, 10);
       var yNew = parseInt(this.y.val, 10);
@@ -47,14 +47,16 @@ var app = new Vue({
       return lines;
     },
     getSvgWidth: function() {
-      return this.x.sum > 1000 ? this.x.sum + 100 : 1000;
+      return window.innerWidth;
     },
     getSvgHeight: function() {
-      console.log(this.y.min + "," + this.x.min);
-      return this.y.sum > 1000 ? this.y.sum + 100 : 1000;
+      return window.innnerHeight ? window.innerHeight : 800;
+    },
+    getViewBox: function () {
+      return "0 0 " + (this.getSvgWidth > window.innerWidth ? this.getSvgWidth : window.innerWidth) + " " + (this.getSvgHeight > 800 ? this.getSvgHeight() : 800);
     },
     getTransform: function () {
-      return "translate(" + Math.abs(this.x.min < 0 ? this.x.min - 10 : 0) + "," + Math.abs(this.y.min < 0 ? this.y.min - 10 : 0) + ") " + (window.innerWidth < this.x.sum ? "scale(" + window.innerWidth / (this.x.sum + 500) + ")" : "" );
+      return "translate(" + Math.abs(this.x.min < 0 ? this.x.min - 10 : 0) + "," + Math.abs(this.y.min < 0 ? this.y.min - 10 : 0) + ")";
     },
     registerInput: function () {
       var x = {min: 0, max: 0, sum: 0};
@@ -63,10 +65,10 @@ var app = new Vue({
       this.points.forEach(function (point) {
         x.sum += parseInt(point[0], 10);
         y.sum += parseInt(point[1], 10);
-        x.min = x.min < x.sum ? x.min : x.sum;
-        x.max = x.max > x.sum ? x.max : x.sum;
-        y.min = y.min < y.sum ? y.min : y.sum;
-        y.max = y.max > y.sum ? y.max : y.sum;
+        x.min = Math.min(x.min, x.sum);
+        x.max = Math.max(x.sum, x.max);
+        y.min = Math.min(y.min, y.sum);
+        y.max = Math.max(y.sum, y.max);
       });
 
       this.x.min =  x.min;
@@ -88,5 +90,16 @@ var app = new Vue({
       this.x.val = 0;
       this.y.val = 0;
     }
+  },
+  updated: function () {
+    var pan = svgPanZoom('#js-svg', {
+      zoomEnabled: true,
+      controlIconsEnabled: false,
+      fit: false,
+      center: false,
+      minZoom: 0.5,
+      maxZoom: 2
+    });
+    pan.zoom(1);
   }
 });

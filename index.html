@@ -6,25 +6,36 @@
 </head>
 <body>
   <main id="js-main">
-    <div>
+
+    <div class="tab tab--start" v-show="tab === 'start'">
+      <label>height of plan: <input type="number" v-model="plan.width"></label>
+      <label>width of plan: <input type="number" v-model="plan.height"></label>
+      <button v-on:click="setTab('measure')">OK</button>
+    </div>
+
+    <div class="tab tab--measure" v-show="tab === 'measure'">
       <label>x: <input type="number" v-model="x.val"></label>
       <label>y: <input type="number" v-model="y.val"></label>
       <button v-on:click="addPoint">Add</button>
+      <ul class="list">
+        <li v-for="(point, index) in points" :id="'js-input-' + index" :data-for="'svg-line-' + index">
+          <label><input type="number" v-model="points[index][0]"></label>
+          <label><input type="number" v-model="points[index][1]"></label>
+        </li>
+      </ul>
+      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" style="max-width: 100%">
+        <g>
+          <g v-if="points.length > 1" :transform="getTransform()">
+            <line v-for="(line, index) in getLines()" :id="'svg-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#000"></line>
+          </g>
+        </g>
+      </svg>
     </div>
-    <ul class="list">
-      <li v-for="(point, index) in points">
-        <label><input type="number" v-model="points[index][0]"></label>
-        <label><input type="number" v-model="points[index][1]"></label>
-      </li>
-    </ul>
-    <svg id="js-svg" :width="getSvgWidth()" :height="getSvgHeight()" style="max-width: 100%">
-      <g v-if="points.length > 1" :transform="getTransform()">
-        <line v-for="(line, index) in getLines()" :id="'svg-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#000"></line>
-      </g>
-    </svg>
+
   </main>
   <script src="bower_components/Snap.svg/dist/snap.svg.js" type="text/javascript"></script>
   <script src="bower_components/vue/dist/vue.js" type="text/javascript"></script>
+  <script src="bower_components/svg-pan-zoom/dist/svg-pan-zoom.js" type="text/javascript"></script>
   <script src="script.js" type="text/javascript"></script>
 </body>
 </html>
