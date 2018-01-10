@@ -1,7 +1,7 @@
 var app = new Vue({
   el: "#js-main",
   data: {
-    points: [[0,0]],
+    points: [[0,0],[2000,0],[0,2000],[-2000,0],[0,-2000]],
     lines: [],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
@@ -15,10 +15,12 @@ var app = new Vue({
     },
 
     panel: {
-      h: 0,
-      w: 0,
+      h: 400,
+      w: 100,
+      col: 0,
+      row: 0,
       type: 'symmetric',
-      correction: []
+      correction: {}
     }
   },
   methods: {
@@ -117,19 +119,12 @@ var app = new Vue({
     },
 
     getPanels: function() {
-      var perW = Math.round(this.x.sum / this.panel.w) + 2;
-      var perH = Math.round(this.y.sum / this.panel.h) + 2;
+      this.panel.col = Math.round(this.x.sum / this.panel.w) + 2;
+      this.panel.row = Math.round(this.y.sum / this.panel.h) + 2;
       var panels = [];
 
-      if(this.panel.length !== perW) {
-        this.panel.correction = [];
-        for(var i = 0; i < perW; i += 1) {
-          this.panel.correction.push(0);
-        }
-      }
-
-      for(var col = 0; col < perW; col += 1) {
-        for(var row = 0; row < perH; row += 1) {
+      for(var col = -1; col < this.panel.col; col += 1) {
+        for(var row = -1; row < this.panel.row; row += 1) {
           panels.push({
             x: col * this.panel.w,
             y: row * this.panel.h,
@@ -139,6 +134,8 @@ var app = new Vue({
       }
 
       console.log(panels);
+      console.log(this.panel.col);
+      console.log(this.panel.row);
       return panels;
     }
   },
