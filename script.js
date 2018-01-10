@@ -2,20 +2,29 @@ var app = new Vue({
   el: "#js-main",
   data: {
     points: [[0,0]],
-    prev: [0,0],
     lines: [],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
+
     lineId: 1,
     tab: 'start',
+
     plan: {
       width: 5000,
       height: 5000
+    },
+
+    panel: {
+      h: 0,
+      w: 0,
+      type: 'symmetric',
+      correction: []
     }
   },
   methods: {
     setTab: function (tab) {
       this.tab = tab;
+      console.log(this.tab);
     },
     addPoint: function() {
       var xNew = parseInt(this.x.val, 10);
@@ -41,7 +50,6 @@ var app = new Vue({
         });
 
         current = next;
-
       }
 
       return lines;
@@ -53,7 +61,7 @@ var app = new Vue({
       return window.innnerHeight ? window.innerHeight : 800;
     },
     getViewBox: function () {
-      return "0 0 " + (this.getSvgWidth > window.innerWidth ? this.getSvgWidth : window.innerWidth) + " " + (this.getSvgHeight > 800 ? this.getSvgHeight() : 800);
+      return "0 0 " + this.plan.width + " " + this.plan.width;
     },
     getTransform: function () {
       return "translate(" + Math.abs(this.x.min < 0 ? this.x.min - 10 : 0) + "," + Math.abs(this.y.min < 0 ? this.y.min - 10 : 0) + ")";
@@ -89,10 +97,53 @@ var app = new Vue({
     resetInput: function () {
       this.x.val = 0;
       this.y.val = 0;
+    },
+
+    getRoomOutline: function () {
+      var d = "";
+      this.points.forEach(function (point, index) {
+        if(index === 0) {
+          d += "M" + point[0] + "," + point[1];
+        } else if(point[0] === 0) {
+          d += " V " + point[1];
+        } else if(point[1] === 0) {
+          d += " H " + point[0]
+        } else {
+          d += " L " + point[0] + "," + point[1];
+        }
+      });
+      console.log(d);
+      return d;
+    },
+
+    getPanels: function() {
+      var perW = Math.round(this.x.sum / this.panel.w) + 2;
+      var perH = Math.round(this.y.sum / this.panel.h) + 2;
+      var panels = [];
+
+      if(this.panel.length !== perW) {
+        this.panel.correction = [];
+        for(var i = 0; i < perW; i += 1) {
+          this.panel.correction.push(0);
+        }
+      }
+
+      for(var col = 0; col < perW; col += 1) {
+        for(var row = 0; row < perH; row += 1) {
+          panels.push({
+            x: col * this.panel.w,
+            y: row * this.panel.h,
+            col: col
+          })
+        }
+      }
+
+      console.log(panels);
+      return panels;
     }
   },
   updated: function () {
-    console.log(typeof this.plan.width)
+    console.log('update');
     var pan = svgPanZoom('#js-svg', {
       zoomEnabled: true,
       controlIconsEnabled: false,
