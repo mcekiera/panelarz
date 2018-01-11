@@ -54,16 +54,19 @@
     </div>
 
     <div class="tab tab--visualization" v-if="tab === 'visualization'">
-      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" style="background-color: #000" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" style="max-width: 100%">
+      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" style="max-width: 100%">
         <defs>
           <clipPath id="svg-room">
             <path :d="getRoomOutline()" stroke="#000" fill="#fff"></path>
           </clipPath>
         </defs>
         <g clip-path="url(#svg-room)" fill="#fff">
-          <rect v-for="item in getPanels()" :x="item.x" :y="item.y" :width="panel.w" :height="panel.h" fill="#fff" stroke="#000"></rect>
+          <rect v-for="item in getPanels()" :x="item.x" :y="item.y + getCorrection(item.col + 1)" :width="panel.w" :height="panel.h" fill="#fff" stroke="#000"></rect>
         </g>
       </svg>
+      <label v-for="n in panel.col" >
+        <input v-model="panel.correction[n]" :data-col="n" type="number">
+      </label>
     </div>
 
   </main>

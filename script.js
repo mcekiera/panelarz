@@ -20,7 +20,7 @@ var app = new Vue({
       col: 0,
       row: 0,
       type: 'symmetric',
-      correction: {}
+      correction: []
     }
   },
   methods: {
@@ -118,13 +118,18 @@ var app = new Vue({
       return d;
     },
 
+    getCorrection: function(n) {
+      var corr = parseInt(this.panel.correction[n], 10);
+      return isNaN(corr) ? 0 : corr;
+    },
+
     getPanels: function() {
       this.panel.col = Math.round(this.x.sum / this.panel.w) + 2;
       this.panel.row = Math.round(this.y.sum / this.panel.h) + 2;
       var panels = [];
 
-      for(var col = -1; col < this.panel.col; col += 1) {
-        for(var row = -1; row < this.panel.row; row += 1) {
+      for(var col = -1; col < this.panel.col - 1; col += 1) {
+        for(var row = -1; row < this.panel.row - 1; row += 1) {
           panels.push({
             x: col * this.panel.w,
             y: row * this.panel.h,
@@ -133,9 +138,6 @@ var app = new Vue({
         }
       }
 
-      console.log(panels);
-      console.log(this.panel.col);
-      console.log(this.panel.row);
       return panels;
     }
   },
