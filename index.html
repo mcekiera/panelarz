@@ -60,10 +60,17 @@
             <path :d="getRoomOutline()" stroke="#000" fill="#fff"></path>
           </clipPath>
         </defs>
-        <g clip-path="url(#svg-room)" fill="#fff">
-          <rect v-for="item in getPanels()" v-on:mousedown="onDrag" :data-col="item.com" :x="item.x" :y="item.y + getCorrection(item.col + 1)" :width="panel.w" :height="panel.h" fill="#fff" stroke="#000"></rect>
+        <g transform="translate(20,20)">
+          <path :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
+          <g clip-path="url(#svg-room)" fill="#fff">
+            <path v-for="item in getPanels()" v-on:mousedown="onDrag" :data-col="item.com" :d="'M'  + (item.x + parseInt(panel.horizontal, 10)) + ' ' + (item.y + getCorrection(item.col + 1)) + ' h' + panel.w + ' v' + panel.h + ' h-' + panel.w + ' v-' + panel.h + ' z'" fill="#fff" stroke="#000"></path>
+            <path :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
+          </g>
         </g>
       </svg>
+      <label>
+      <input v-model="panel.horizontal" :data-col="n" type="number">
+      </label>
       <label v-for="n in panel.col" >
         <input v-model="panel.correction[n]" :data-col="n" type="number">
       </label>

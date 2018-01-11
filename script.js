@@ -1,7 +1,7 @@
 var app = new Vue({
   el: "#js-main",
   data: {
-    points: [[0,0],[2000,0],[0,2000],[-2000,0],[0,-2000]],
+    points: [[0,0],[2100,0],[0,2450],[-1100,0],[0,-1450],[-1000,0],[0,-1000]],
     lines: [],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
@@ -10,8 +10,8 @@ var app = new Vue({
     tab: 'start',
 
     plan: {
-      width: 5000,
-      height: 5000
+      width: 2500,
+      height: 2500
     },
 
     panel: {
@@ -20,7 +20,8 @@ var app = new Vue({
       col: 0,
       row: 0,
       type: 'symmetric',
-      correction: []
+      correction: [],
+      horizontal: 0
     }
   },
   methods: {
@@ -107,15 +108,15 @@ var app = new Vue({
         if(index === 0) {
           d += "M" + point[0] + "," + point[1];
         } else if(point[0] === 0) {
-          d += " V " + point[1];
+          d += " v " + point[1];
         } else if(point[1] === 0) {
-          d += " H " + point[0]
+          d += " h " + point[0]
         } else {
-          d += " L " + point[0] + "," + point[1];
+          d += " l " + point[0] + "," + point[1];
         }
       });
       console.log(d);
-      return d;
+      return d + "z";
     },
 
     getCorrection: function(n) {
@@ -140,20 +141,21 @@ var app = new Vue({
 
       return panels;
     },
+    anFunct: function (ev) {
+      this.panel.correction[2] = ev.clientY - y;
+      console.log(ev.clientY - y);
+    },
     onDrag: function (e) {
       console.log(e);
       var y = e.clientY;
       var that = this;
 
-      var anFunct = function (ev) {
-        that.panel.correction[2] = ev.clientY - y;
-        console.log(ev.clientY - y);
-      };
+      var a = this.anFunct;
 
-      window.addEventListener('mousemove', anFunct)
+      window.addEventListener('mousemove', this.anFunct)
 
       window.addEventListener('mouseup', function (ev) {
-        window.removeEventListener('mousemove', anFunct, false);
+        window.removeEventListener('mousemove', a, false);
       })
 
     }
