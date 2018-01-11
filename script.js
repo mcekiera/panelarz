@@ -139,6 +139,23 @@ var app = new Vue({
       }
 
       return panels;
+    },
+    onDrag: function (e) {
+      console.log(e);
+      var y = e.clientY;
+      var that = this;
+
+      var anFunct = function (ev) {
+        that.panel.correction[2] = ev.clientY - y;
+        console.log(ev.clientY - y);
+      };
+
+      window.addEventListener('mousemove', anFunct)
+
+      window.addEventListener('mouseup', function (ev) {
+        window.removeEventListener('mousemove', anFunct, false);
+      })
+
     }
   },
   updated: function () {

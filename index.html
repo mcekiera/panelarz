@@ -61,7 +61,7 @@
           </clipPath>
         </defs>
         <g clip-path="url(#svg-room)" fill="#fff">
-          <rect v-for="item in getPanels()" :x="item.x" :y="item.y + getCorrection(item.col + 1)" :width="panel.w" :height="panel.h" fill="#fff" stroke="#000"></rect>
+          <rect v-for="item in getPanels()" v-on:mousedown="onDrag" :data-col="item.com" :x="item.x" :y="item.y + getCorrection(item.col + 1)" :width="panel.w" :height="panel.h" fill="#fff" stroke="#000"></rect>
         </g>
       </svg>
       <label v-for="n in panel.col" >
