@@ -1,7 +1,8 @@
 var app = new Vue({
   el: "#js-main",
   data: {
-    points: [[0,0],[2100,0],[0,2450],[-1100,0],[0,-1450],[-1000,0],[0,-1000]],
+    // M0,0 h2498 v1190 h152 v-1185 h251 v-32 h871 v440 h150 v-670 h1122 v505 h671 v4137 h-1315 v197 h-1750 v-1413 h-150 v1215 h-2498 v-4385"></path>
+    points: [[0,0],[2498,0],[0,1190],[152,0],[0,-1185],[251,0],[0,-32],[871,0],[0,440],[150,0],[0,-670],[1122,0],[0,505],[671,0],[0,4137],[-1315,0],[0,197],[-1750,0],[0,-1413],[-150,0],[0,1215],[-2498,0],[0,-4385]],
     lines: [],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
@@ -10,25 +11,33 @@ var app = new Vue({
     tab: 'start',
 
     plan: {
-      width: 2500,
-      height: 2500
+      width: 5000,
+      height: 5000
     },
 
+    ratio: 1,
+
     panel: {
-      h: 400,
-      w: 100,
+      h: 1298,
+      w: 282,
       col: 0,
       row: 0,
       type: 'symmetric',
       correction: [],
-      horizontal: 0
+      tempCorrection: [],
+      horizontal: 0,
+      tempHorizontal: 0
     },
     mouseDrag: false,
     mouseDrop:  {
       x: 0,
       y: 0
     },
-    double: false
+    double: false,
+    currentColumn: -1,
+    currentPanel: null,
+    orientation: 'vertical',
+    level: 'column'
   },
   methods: {
     setTab: function (tab) {
@@ -107,7 +116,6 @@ var app = new Vue({
       this.x.val = 0;
       this.y.val = 0;
     },
-
     getRoomOutline: function () {
       var d = "";
       this.points.forEach(function (point, index) {
@@ -122,7 +130,21 @@ var app = new Vue({
         }
       });
 
-      return d + "z";
+      return d + " z";
+    },
+    getPanelOutline: function(item) {
+      if (this.orientation === 'vertical') {
+        return 'M' + (item.x + parseInt(this.panel.horizontal, 10)) + ' ' + (item.y + this.getCorrection(item.col + 1)) + ' h' + this.panel.w + ' v' + this.panel.h + ' h-' + this.panel.w + ' v-' + this.panel.h + ' z';
+      } else {
+        return 'M' + (item.y + this.getCorrection(item.col + 1)) + ' ' + (item.x + parseInt(this.panel.horizontal, 10)) + ' h' + this.panel.h + ' v' + this.panel.w + ' h-' + this.panel.h + ' v-' + this.panel.w + ' z';
+      }
+    },
+    rotateOutline: function () {
+      if (this.orientation === 'vertical') {
+        this.orientation = 'horizontal';
+      } else {
+        this.orientation = 'vertical';
+      }
     },
 
     getCorrection: function(n) {
@@ -132,16 +154,20 @@ var app = new Vue({
     },
 
     getPanels: function() {
-      this.panel.col = Math.round(this.x.sum / this.panel.w) + 2;
-      this.panel.row = Math.round(this.y.sum / this.panel.h) + 2;
+      this.panel.col = this.orientation === 'vertical' ? Math.round(this.x.sum / this.panel.w) + 2 : Math.round(this.y.sum / this.panel.w) + 2;
+      this.panel.row = this.orientation === 'vertical' ? Math.round(this.y.sum / this.panel.h) + 2 : Math.round(this.x.sum / this.panel.h) + 2;
       var panels = [];
 
       for(var col = -1; col < this.panel.col - 1; col += 1) {
+        if(typeof this.panel.correction[col] === 'undefined') {
+          this.panel.correction[col] = 0;
+        }
         for(var row = -1; row < this.panel.row - 1; row += 1) {
           panels.push({
             x: col * this.panel.w,
             y: row * this.panel.h,
-            col: col
+            col: col,
+            row: row
           })
         }
       }
@@ -150,8 +176,16 @@ var app = new Vue({
     },
     mouseDown: function (event) {
       event.preventDefault();
+      this.ratio = this.plan.width / document.getElementById("js-svg-visualization").getBoundingClientRect().width;
+      console.log(this.plan.width / document.getElementById("js-svg-visualization").getBoundingClientRect().width);
+      var panel = event.srcElement || event.originalTarget;
+      this.currentColumn = parseInt(panel.dataset.col, 10);
+      this.currentPanel = panel;
+
       this.mouseDrop.x = event.clientX;
       this.mouseDrop.y = event.clientY;
+      this.panel.tempCorrection = this.panel.correction.slice();
+      this.panel.tempHorizontal = this.panel.horizontal;
       this.mouseDrag = true;
 
     },
@@ -159,18 +193,34 @@ var app = new Vue({
       this.mouseDrag = false;
     },
     mouseMove: function (event) {
-      if (this.mouseDrag) {
+      if(this.mouseDrag) {
+        var x = this.panel.tempHorizontal + ((event.clientX - this.mouseDrop.x) * this.ratio);
+        var y = this.panel.tempCorrection[this.currentColumn + 1] + ((event.clientY - this.mouseDrop.y) * this.ratio);
 
-        if(!this.double) {
-          Vue.set(this.panel, 'horizontal', event.clientX - this.mouseDrop.x);
-        } else {
-          Vue.set(this.panel.correction,4,event.clientY - this.mouseDrop.y);
+        if(this.level === 'group') {
+          Vue.set(this.panel, 'horizontal', this.orientation === 'vertical' ? x : y);
+        } else if(this.level === 'column') {
+          Vue.set(this.panel.correction, this.currentColumn + 1, this.orientation === 'vertical' ? y : x);
         }
       }
     },
     doubleClick: function () {
-      this.double = true;
-    }
+      if (this.level === 'group') {
+        this.level = 'column';
+      } else if(this.level === 'column') {
+        this.level = 'element';
+      } else {
+        this.level = 'group';
+      }
+
+    },
+    // setCurrentPanel: function (event) {
+    //   var panel = event.srcElement;
+    //   this.currentColumn = parseInt(panel.dataset.col, 10);
+    //   console.log(this.currentColumn);
+    //   this.currentPanel = panel;
+    //   console.log(event);
+    // }
   },
   updated: function () {
 

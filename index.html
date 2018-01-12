@@ -62,8 +62,8 @@
         </defs>
         <g transform="translate(20,20)">
           <path :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
-          <g @mousedown="mouseDown($event)" @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()" clip-path="url(#svg-room)" fill="#fff">
-            <path v-for="item in getPanels()" :data-col="item.col" :d="'M'  + (item.x + parseInt(panel.horizontal, 10)) + ' ' + (item.y + getCorrection(item.col + 1)) + ' h' + panel.w + ' v' + panel.h + ' h-' + panel.w + ' v-' + panel.h + ' z'" fill="#fff" stroke="#000"></path>
+          <g class="svg-panel-surface" @mousedown="mouseDown($event)" @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()" clip-path="url(#svg-room)" fill="#fff">
+            <path v-for="item in getPanels()" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
             <path :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
           </g>
         </g>
@@ -74,6 +74,7 @@
       <label v-for="n in panel.col" >
         <input v-model="panel.correction[n]" :data-col="n" type="number">
       </label>
+      <button @click="rotateOutline()">Rotate</button>
     </div>
 
   </main>
