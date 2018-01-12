@@ -22,12 +22,18 @@ var app = new Vue({
       type: 'symmetric',
       correction: [],
       horizontal: 0
-    }
+    },
+    mouseDrag: false,
+    mouseDrop:  {
+      x: 0,
+      y: 0
+    },
+    double: false
   },
   methods: {
     setTab: function (tab) {
       this.tab = tab;
-      console.log(this.tab);
+
     },
     addPoint: function() {
       var xNew = parseInt(this.x.val, 10);
@@ -94,7 +100,7 @@ var app = new Vue({
     getLineId: function () {
       currentId = "svg-line-" + this.lineId;
       this.lineId += 1;
-      console.log(this.lineId);
+
       return currentId;
     },
     resetInput: function () {
@@ -115,11 +121,12 @@ var app = new Vue({
           d += " l " + point[0] + "," + point[1];
         }
       });
-      console.log(d);
+
       return d + "z";
     },
 
     getCorrection: function(n) {
+
       var corr = parseInt(this.panel.correction[n], 10);
       return isNaN(corr) ? 0 : corr;
     },
@@ -141,27 +148,32 @@ var app = new Vue({
 
       return panels;
     },
-    anFunct: function (ev) {
-      this.panel.correction[2] = ev.clientY - y;
-      console.log(ev.clientY - y);
+    mouseDown: function (event) {
+      event.preventDefault();
+      this.mouseDrop.x = event.clientX;
+      this.mouseDrop.y = event.clientY;
+      this.mouseDrag = true;
+
     },
-    onDrag: function (e) {
-      console.log(e);
-      var y = e.clientY;
-      var that = this;
+    mouseUp: function (event) {
+      this.mouseDrag = false;
+    },
+    mouseMove: function (event) {
+      if (this.mouseDrag) {
 
-      var a = this.anFunct;
-
-      window.addEventListener('mousemove', this.anFunct)
-
-      window.addEventListener('mouseup', function (ev) {
-        window.removeEventListener('mousemove', a, false);
-      })
-
+        if(!this.double) {
+          Vue.set(this.panel, 'horizontal', event.clientX - this.mouseDrop.x);
+        } else {
+          Vue.set(this.panel.correction,4,event.clientY - this.mouseDrop.y);
+        }
+      }
+    },
+    doubleClick: function () {
+      this.double = true;
     }
   },
   updated: function () {
-    console.log('update');
+
     var pan = svgPanZoom('#js-svg', {
       zoomEnabled: true,
       controlIconsEnabled: false,
