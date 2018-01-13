@@ -54,17 +54,19 @@
     </div>
 
     <div class="tab tab--visualization" v-if="tab === 'visualization'">
-      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" style="max-width: 100%">
+      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" >
         <defs>
           <clipPath id="svg-room">
             <path :d="getRoomOutline()" stroke="#000" fill="#fff"></path>
           </clipPath>
         </defs>
-        <g transform="translate(20,20)">
-          <path :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
-          <g class="svg-panel-surface" @mousedown="mouseDown($event)" @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()" clip-path="url(#svg-room)" fill="#fff">
-            <path v-for="item in getPanels()" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
-            <path :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
+        <g :transform="'translate(' + translateAll + ',' + translateAll + ')'">
+          <path id="svg-room-outline" :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
+          <g id="svg-panel-surface" @mousedown="mouseDown($event)"   @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()"  fill="#fff">
+            <g>
+              <path v-for="item in getPanels()" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
+            </g>
+            <path id="svg-room-outline-in" :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
           </g>
         </g>
       </svg>
@@ -76,6 +78,7 @@
       </label>
       <button @click="rotateOutline()">Rotate</button>
     </div>
+    <div id="test"></div>
 
   </main>
 

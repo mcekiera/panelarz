@@ -2,7 +2,7 @@ var app = new Vue({
   el: "#js-main",
   data: {
     // M0,0 h2498 v1190 h152 v-1185 h251 v-32 h871 v440 h150 v-670 h1122 v505 h671 v4137 h-1315 v197 h-1750 v-1413 h-150 v1215 h-2498 v-4385"></path>
-    points: [[0,0],[2498,0],[0,1190],[152,0],[0,-1185],[251,0],[0,-32],[871,0],[0,440],[150,0],[0,-670],[1122,0],[0,505],[671,0],[0,4137],[-1315,0],[0,197],[-1750,0],[0,-1413],[-150,0],[0,1215],[-2498,0],[0,-4385]],
+    points: [[0,0],[2498,0],[0,1190],[152,0],[0,-1185],[251,0],[0,-32],[871,0],[0,440],[150,0],[0,-670],[1122,0],[0,505],[671,0],[0,4137],[-1315,0],[0,147],[-50,0],[0,50],[-1650,0],[0, -400],[-50,0],[0,-1013],[-150,0],[0,1215],[-2498,0],[0,-4385]],
     lines: [],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
@@ -11,8 +11,8 @@ var app = new Vue({
     tab: 'start',
 
     plan: {
-      width: 5000,
-      height: 5000
+      width: 6000,
+      height: 6000
     },
 
     ratio: 1,
@@ -33,9 +33,10 @@ var app = new Vue({
       x: 0,
       y: 0
     },
+    translateAll: 20,
     double: false,
     currentColumn: -1,
-    currentPanel: null,
+    currentPanel: {},
     orientation: 'vertical',
     level: 'column'
   },
@@ -134,7 +135,7 @@ var app = new Vue({
     },
     getPanelOutline: function(item) {
       if (this.orientation === 'vertical') {
-        return 'M' + (item.x + parseInt(this.panel.horizontal, 10)) + ' ' + (item.y + this.getCorrection(item.col + 1)) + ' h' + this.panel.w + ' v' + this.panel.h + ' h-' + this.panel.w + ' v-' + this.panel.h + ' z';
+        return 'M' + (item.x + parseInt(this.panel.horizontal, 10)) + ',' + (item.y + this.getCorrection(item.col + 1)) + ' h' + this.panel.w + ' v' + this.panel.h + ' h-' + this.panel.w + ' v-' + this.panel.h + ' z';
       } else {
         return 'M' + (item.y + this.getCorrection(item.col + 1)) + ' ' + (item.x + parseInt(this.panel.horizontal, 10)) + ' h' + this.panel.h + ' v' + this.panel.w + ' h-' + this.panel.h + ' v-' + this.panel.w + ' z';
       }
@@ -177,10 +178,116 @@ var app = new Vue({
     mouseDown: function (event) {
       event.preventDefault();
       this.ratio = this.plan.width / document.getElementById("js-svg-visualization").getBoundingClientRect().width;
-      console.log(this.plan.width / document.getElementById("js-svg-visualization").getBoundingClientRect().width);
+
       var panel = event.srcElement || event.originalTarget;
       this.currentColumn = parseInt(panel.dataset.col, 10);
+      this.currentPanel.style = '';
+      this.currentPanel.style = '';
       this.currentPanel = panel;
+      panel.style = 'stroke-width: 10';
+
+      var room = Snap.path.toAbsolute(Snap('#svg-room-outline-in'));
+      var pan = Snap.path.toAbsolute(Snap('#' + panel.getAttribute('id')));
+
+      panel.parentNode.appendChild(panel);
+      var inter = Snap.path.intersection(pan ,room);
+      if(inter.length !== 0) {
+        var sameSide = inter[0].segment2 === inter[1].segment2;
+
+
+        console.log(pan);
+        // console.log(room);
+        // if(inter[0].segment1 == 4) {
+        //   pan[inter[0].segment1] = pan[inter[0].segment1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)];
+        //   pan[inter[1].segment1] = pan[inter[1].segment1][1] === "H" ? ["H", Math.round(inter[1].x)] : ["V", Math.round(inter[1].y)];
+        //   pan.splice(inter[1].segment1 + 1, 0, room[inter[1].segment2][0] === "H" ? ["H", Math.round(inter[1].x)] : ["V", Math.round(inter[1].y)]);
+        // } else if(inter[0].segment1 == 3) {
+
+        if (inter[0].segment2 === inter[1].segment2 - 1) {
+          pan[inter[0].segment1] = pan[inter[0].segment1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)];
+          pan = pan.slice(0, inter[0].segment1 + 1).concat(room.slice(inter[0].segment2, inter[1].segment2).concat(pan.slice(inter[0].segment1 + 1)));
+          pan.splice(inter[1].segment1 + 1, 0, room[inter[1].segment2][0] === "H" ? ["H", Math.round(inter[1].x)] : ["V", Math.round(inter[1].y)]);
+        } else if(inter[0].segment1 === inter[1].segment1) {
+          pan.splice(inter[0].segment1, 0, pan[inter[0].segment1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)]);
+          pan.splice(inter[0].segment1 + 1, 0, pan[inter[1].segment1 - 1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)]);
+          pan = pan.slice(0, inter[0].segment1 + 1).concat(room.slice(inter[0].segment2, inter[1].segment2).concat(pan.slice(inter[0].segment1 + 1)));
+        } else if(inter[0].segment2 === inter[1].segment2) {
+          pan[inter[0].segment1] = pan[inter[0].segment1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)];
+        } else if(!sameSide) {
+          pan[inter[0].segment1] = pan[inter[0].segment1][0] === "H" ? ["H", Math.round(inter[0].x)] : ["V", Math.round(inter[0].y)];
+          pan = pan.slice(0,inter[0].segment1 + 1).concat(room.slice(inter[0].segment2, inter[1].segment2).concat(pan.slice(inter[0].segment1 + 1)));
+        }
+        //
+        // }
+
+        console.log(pan);
+
+        Snap("#js-svg-visualization").select('#svg-panel-surface').path(pan.map(function (el) {
+          return el.join(" ");
+        }).join(" ").replace(/^L[\d\s,-]*M/, 'M')).attr('stroke',"green").attr('strokeWidth',1).attr('fill','green');
+
+        console.log(pan.map(function (el) {
+          return el.join(" ");
+        }).join(" ").replace(/^L[\d\s,-]*M/, 'M'));
+      }
+
+
+      //
+      // var seg1_1, seg1_2;
+      // if(inter[0].segment1 > inter[1].segment1) {
+      //   seg1_1 = inter[0].segment1 - 1;
+      //   seg1_2 = inter[1].segment1 - 1;
+      // } else {
+      //   seg1_1 = inter[1].segment1 - 1;
+      //   seg1_2 =  inter[0].segment1 - 1;
+      // }
+      //
+      //
+      // var newPath = "";
+      // for (var i = 0; i < pan.node.pathSegList.length; i += 1) {
+      //   if(i >= seg1_2 && i <= seg1_1) {
+      //     switch (pan.node.pathSegList[i].pathSegTypeAsLetter) {
+      //       case "M":
+      //         newPath += "M" + pan.node.pathSegList[i].x + "," + pan.node.pathSegList[i].y;
+      //         break;
+      //       case "h":
+      //         newPath += " h" + pan.node.pathSegList[i].x;
+      //         break;
+      //       case "v":
+      //         newPath += " v" + pan.node.pathSegList[i].y;
+      //         break;
+      //       case "z":
+      //         newPath += " z";
+      //     }
+      //   }
+      // }
+      // console.log(newPath);
+      //
+      // var newPath2 = "";
+      // for (var i = 0; i < room.node.pathSegList.length; i += 1) {
+      //   switch (room.node.pathSegList[i].pathSegTypeAsLetter) {
+      //     case "M":
+      //       newPath2 += "M" + room.node.pathSegList[i].x + "," + room.node.pathSegList[i].y;
+      //       break;
+      //     case "h":
+      //       newPath2 += " h" + room.node.pathSegList[i].x;
+      //       break;
+      //     case "v":
+      //       newPath2 += " v" + room.node.pathSegList[i].y;
+      //       break;
+      //     case "z":
+      //       newPath2 += " z";
+      //   }
+      // }
+      // console.log(newPath2);
+      //
+
+      console.log(inter);
+      var trans = this.translateAll;
+      inter.forEach(function (el) {
+        Snap("#js-svg-visualization").circle(el.x + trans, el.y + trans, 5).attr('fill','blue')
+      });
+
 
       this.mouseDrop.x = event.clientX;
       this.mouseDrop.y = event.clientY;
@@ -214,12 +321,13 @@ var app = new Vue({
       }
 
     },
+
     // setCurrentPanel: function (event) {
     //   var panel = event.srcElement;
     //   this.currentColumn = parseInt(panel.dataset.col, 10);
-    //   console.log(this.currentColumn);
+    //
     //   this.currentPanel = panel;
-    //   console.log(event);
+    //
     // }
   },
   updated: function () {

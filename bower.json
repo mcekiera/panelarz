@@ -18,5 +18,6 @@
     "vue": "^2.5.13",
     "Snap.svg": "^0.5.1",
     "svg-pan-zoom": "^3.5.2"
-  }
+  },
+  "dependencies": {}
 }
