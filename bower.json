@@ -19,5 +19,7 @@
     "Snap.svg": "^0.5.1",
     "svg-pan-zoom": "^3.5.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "turf": "^5.1.6"
+  }
 }

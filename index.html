@@ -62,9 +62,9 @@
         </defs>
         <g :transform="'translate(' + translateAll + ',' + translateAll + ')'">
           <path id="svg-room-outline" :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
-          <g id="svg-panel-surface" @mousedown="mouseDown($event)"   @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()"  fill="#fff">
+          <g id="svg-panel-surface" clip-path="url(#svg-room)" @mousedown="mouseDown($event)"   @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()"  fill="#fff">
             <g>
-              <path v-for="item in getPanels()" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
+              <path v-for="item in getPanels()" :data-x="getPanelX(item)" :data-y="getPanelY(item)" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
             </g>
             <path id="svg-room-outline-in" :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
           </g>
@@ -85,6 +85,7 @@
   <script src="bower_components/vue/dist/vue.js" type="text/javascript"></script>
   <script src="bower_components/Snap.svg/dist/snap.svg.js" type="text/javascript"></script>
   <script src="bower_components/svg-pan-zoom/dist/svg-pan-zoom.js" type="text/javascript"></script>
+  <script src="assets/js/turf.min.js" type="text/javascript"></script>
   <script src="script.js" type="text/javascript"></script>
 </body>
 </html>
