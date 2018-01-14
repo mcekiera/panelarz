@@ -20,6 +20,5 @@
     "svg-pan-zoom": "^3.5.2"
   },
   "dependencies": {
-    "turf": "^5.1.6"
   }
 }

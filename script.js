@@ -230,19 +230,19 @@ var app = new Vue({
           var d = "";
           for(var i = 0; i < arr.length; i += 1) {
             if(i === 0) {
-              d += "M" + arr[i][0] + "," + arr[i][1];
+              d += "M0,0";
             } else {
               if(arr[i - 1][0] === arr[i][0]) {
-                d += " H" + arr[i][0]
+                d += " H" + (arr[i][0] - arr[0][0]);
               } else if(arr[i - 1][1] === arr[i][1]) {
-                d += " V" + arr[i][1]
+                d += " V" + (arr[i][1] - arr[0][1]);
               }
             }
           }
           return d + ' z';
         }
 
-        var snap = Snap("#js-svg-visualization");
+        var snap = Snap("#js-svg-panel-presentation");
         var difference = turf.difference(p2,p1);
         if(difference !== null) {
           var parts = difference.geometry.coordinates;
@@ -255,7 +255,7 @@ var app = new Vue({
             console.log(el);
             var con = convert(arr.length > 1 ? el[0] : el);
             console.log(con);
-            var x = snap.select('#svg-panel-surface').path(con);
+            var x = snap.path(con);
             x.attr('fill', 'blue');
           });
         }
