@@ -53,7 +53,7 @@
         <g>
           <g v-if="points.length > 1">
             <line v-for="(line, index) in outlineLines" :id="'svg-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#000"></line>
-            <line v-for="(line, index) in dilatationOutline" :id="'svg-dilatation-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#f00"></line>
+            <path v-for="(line, index) in dilatationLines" :id="'svg-dilatation-line-' + index" :d="'M' + Math.round(line.x1) + ' ' + Math.round(line.y1) + 'L' + Math.round(line.x2) + ' ' + Math.round(line.y2)" stroke="#f00"></path>
           </g>
         </g>
       </svg>
@@ -79,7 +79,8 @@
 
               <!--<path v-for="item in getPanels()" :data-x="getPanelX(item)" :data-y="getPanelY(item)" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>-->
             </g>
-            <path id="svg-room-outline-in" :d="roomOutline" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
+            <!--<path id="svg-room-outline-in" :d="roomOutline" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>-->
+            <path id="svg-dilatation-outline-in" :d="dilatationOutline" stroke="red" stroke-linejoin="miter" stroke-width="1" fill="none"></path>
           </g>
         </g>
       </svg>

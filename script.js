@@ -1,8 +1,8 @@
 new Vue({
   el: "#js-main",
   data: {
-    // points: [[100,0,'inner'],[2498,0,'inner'],[0,1190,'outer'],[152,0,'outer'],[0,-1185,'inner'],[251,0,'outer'],[0,-32, 'inner'],[871,0,'inner'],[0,440, 'outer'],[150,0,'outer'],[0,-670,'inner'],[1122,0,'inner'],[0,505,'outer'],[371,0,'inner'],[300,300, 'inner'],[0,2837,'inner'],[-1000,1000,'inner'],[-315,0,'outer'],[0,147,'inner'],[-50,0,'outer'],[0,50,'inner'],[-1650,0,'inner'],[0, -400,'outer'],[-50,0,'inner'],[0,-1013,'outer'],[-150,0,'outer'],[0,1215,'inner'],[-2300,0,'inner'],[-300,-200,'inner'],[0,-3800,'inner'],[100,-384,'inner']],
-    points: [[200,-200],[200,0],[200,200],[0,200],[-200,200],[-200,0],[-200,-200],[0,-200],[200,-200]],
+    points: [[0,0,'inner'],[2498,0,'inner'],[0,1190,'outer'],[152,0,'outer'],[0,-1185,'inner'],[251,0,'outer'],[0,-32, 'inner'],[871,0,'inner'],[0,440, 'outer'],[150,0,'outer'],[0,-670,'inner'],[1122,0,'inner'],[0,505,'outer'],[371,0,'inner'],[300,300, 'inner'],[0,2837,'inner'],[-1000,1000,'inner'],[-315,0,'outer'],[0,147,'inner'],[-50,0,'outer'],[0,50,'inner'],[-1650,0,'inner'],[0, -400,'outer'],[-50,0,'inner'],[0,-1013,'outer'],[-150,0,'outer'],[0,1215,'inner'],[-2300,0,'inner'],[-300,-200,'inner'],[100,-4184,'inner']],
+    // points: [[0,0],[200,-200],[200,0],[200,200],[0,200],[-200,200],[-200,0],[-200,-200],[0,-200]],
     x: { val: 0, sum: 0, min: 0 },
     y: { val: 0, sum: 0, min: 0 },
 
@@ -10,8 +10,8 @@ new Vue({
     tab: 'start',
 
     plan: {
-      width: 800,
-      height: 800,
+      width: 6000,
+      height: 6000,
       translateAll: 20,
       orientation: 'vertical',
       currentColumn: -1,
@@ -56,6 +56,11 @@ new Vue({
         return Snap("#js-svg-visualization");
       }
     },
+    snapOutline: function () {
+      if(this.tab === 'visualization') {
+        return Snap("#js-svg");
+      }
+    },
     panVisualization: function () {
       if (this.tab === 'visualization') {
         return svgPanZoom('#js-svg-visualization', {
@@ -97,7 +102,7 @@ new Vue({
 
       return lines;
     },
-    dilatationOutline: function () {
+    dilatationLines: function () {
       var lines = [];
       var that = this;
       this.outlineLines.forEach(function (line) {
@@ -105,8 +110,28 @@ new Vue({
       });
       return lines;
     },
-    roomOutline: function () {
+    dilatationCoordinates: function() {
+      var coords = [];
+      var array = this.dilatationLines;
+      var stLine, ndLine, inter;
+      for(var i = 0; i < array.length; i += 1) {
+        stLine = this.snapOutline.select('#svg-dilatation-line-' + i);
 
+        if(i === array.length - 1) {
+          ndLine = this.snapOutline.select('#svg-dilatation-line-' + 0);
+        } else {
+          ndLine = this.snapOutline.select('#svg-dilatation-line-' + (i + 1));
+        }
+
+        inter = Snap.path.intersection(stLine, ndLine);
+        if(inter.length !== 0) {
+          coords.push([Math.round(inter[0].x), Math.round(inter[0].y)]);
+        }
+      }
+
+      return coords;
+    },
+    roomOutline: function () {
       var d = "";
       this.points.forEach(function (point, index) {
         if(index === 0) {
@@ -120,6 +145,22 @@ new Vue({
         }
       });
 
+      return d + " z";
+    },
+    dilatationOutline: function() {
+      var d = "";
+      this.dilatationCoordinates.forEach(function (point, index) {
+        if(index === 0) {
+          d += "M" + point[0] + "," + point[1];
+        } else if(point[0] === 0) {
+          d += " V " + point[1];
+        } else if(point[1] === 0) {
+          d += " H " + point[0]
+        } else {
+          d += "  L" + point[0] + "," + point[1];
+        }
+      });
+      
       return d + " z";
     },
     roomCoordinates: function() {
@@ -158,6 +199,7 @@ new Vue({
   methods: {
     setTab: function (tab) {
       this.tab = tab;
+      var a = this.dilatationCoordinates;
 
     },
     calculateLineAngle: function(line) {
@@ -330,9 +372,11 @@ new Vue({
           d += "M" + arr[0][0] + "," + arr[0][1];
         } else {
           if(arr[i - 1][0] === arr[i][0]) {
-            d += " H" + (arr[i][0]);
-          } else if(arr[i - 1][1] === arr[i][1]) {
             d += " V" + (arr[i][1]);
+          } else if(arr[i - 1][1] === arr[i][1]) {
+            d += " H" + (arr[i][0]);
+          } else {
+            d += " L" + (arr[i][0]) + "," + (arr[i][1]);
           }
         }
       }
@@ -342,7 +386,7 @@ new Vue({
       event.preventDefault();
 
       var that = this;
-      console.log(this.snap);
+      
       var panel = event.srcElement || event.originalTarget;
 
       this.plan.currentColumn = parseInt(panel.dataset.col, 10);
@@ -363,6 +407,7 @@ new Vue({
           var parts = difference.geometry.coordinates;
           var diff = turf.polygon([parts[0]]);
           var proper = turf.difference(p2, diff).geometry.coordinates;
+          
           proper.forEach(function (el, i, arr) {
 
             var con = that.turfConvert(arr.length > 1 ? el[0] : el);
@@ -479,14 +524,14 @@ new Vue({
           a.setAttribute('style','fill: green');
           cut += 1;
 
-          console.log('----');
-          console.log(panel);
-          console.log(diff);
+          
+          
+          
         }
         all += 1;
       });
-      console.log(all);
-      console.log(other);
+      
+      
       Vue.set(this.calc, 'whole', whole);
       Vue.set(this.calc, 'cut', cut);
     },
@@ -512,7 +557,7 @@ new Vue({
       fit: true,
       center: false,
       minZoom: 0.5,
-      maxZoom: 10
+      maxZoom: 20
     });
 
   }
