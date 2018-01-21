@@ -20,6 +20,7 @@
         <label></label>
         <label>Wysokosć: <input type="number" v-model="panel.h"></label>
         <label>Szerokość: <input type="number" v-model="panel.w"></label>
+        <label>Dylatacja: <input type="number" v-model="panel.dilatation"></label>
         <label>Wzór:
           <select name="type" v-model="panel.type">
             <option value="symmetric">symetryczny</option>
@@ -41,45 +42,63 @@
         <li v-for="(point, index) in points" :id="'js-input-' + index" :data-for="'svg-line-' + index">
           <label><input type="number" v-model="points[index][0]"></label>
           <label><input type="number" v-model="points[index][1]"></label>
+          <label><select v-model="points[index][2]">
+            <option selected>{{angle.inner}}</option>
+            <option>{{angle.outer}}</option>
+          </select></label>
         </li>
       </ul>
       <button v-on:click="setTab('visualization')">OK</button>
-      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="getViewBox()" style="max-width: 100%">
+      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg" :height="svgWidth" :width="svgWidth" :view-box.camel="svgViewBox" style="max-width: 100%">
         <g>
           <g v-if="points.length > 1">
-            <line v-for="(line, index) in getLines()" :id="'svg-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#000"></line>
+            <line v-for="(line, index) in outlineLines" :id="'svg-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#000"></line>
+            <line v-for="(line, index) in dilatationOutline" :id="'svg-dilatation-line-' + index" :x1="line.x1" :x2="line.x2" :y1="line.y1" :y2="line.y2" stroke="#f00"></line>
           </g>
         </g>
       </svg>
     </div>
 
     <div class="tab tab--visualization" v-if="tab === 'visualization'">
-      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" preserveAspectRatio="xMinYMin meet" :height="getSvgWidth()" :width="getSvgWidth()" :view-box.camel="'0 0 ' + plan.width + ' ' + plan.width" >
+      <button @click="setLevel('plan')">plan</button>
+      <button @click="setLevel('group')">po szerokości panela</button>
+      <button @click="setLevel('column')">po długości panela</button>
+      <button @click="setLevel('element')">panel</button>
+
+      <svg xmlns="http://www.w3.org/2000/svg" id="js-svg-visualization" preserveAspectRatio="xMinYMin meet" :height="svgWidth" :width="svgWidth" :view-box.camel="svgViewBox" >
         <defs>
           <clipPath id="svg-room">
-            <path :d="getRoomOutline()" stroke="#000" fill="#fff"></path>
+            <path :d="roomOutline" stroke="#000" fill="#fff"></path>
           </clipPath>
         </defs>
-        <g :transform="'translate(' + translateAll + ',' + translateAll + ')'">
-          <path id="svg-room-outline" :d="getRoomOutline()" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
-          <g id="svg-panel-surface" clip-path="url(#svg-room)" @mousedown="mouseDown($event)"   @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()"  fill="#fff">
+        <g :transform="'translate(' + plan.translateAll + ',' + plan.translateAll + ')'">
+          <path id="svg-room-outline" :d="roomOutline" stroke="#000" stroke-linejoin="miter" stroke-width="10" fill="none"></path>
+          <g id="svg-panel-surface" @mousedown="mouseDown($event)" clip-path="url(#svg-room)"  @mousemove="mouseMove($event)" @mouseup="mouseUp($event)" @dblclick="doubleClick()"  fill="#fff">
             <g>
-              <path v-for="item in getPanels()" :data-x="getPanelX(item)" :data-y="getPanelY(item)" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>
+              <rect v-for="item in getPanels()" :x="getPanelX(item)" :y="getPanelY(item)" :width="panelWidth" :height="panelHeight" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" fill="#fff" stroke="#000"></rect>
+
+              <!--<path v-for="item in getPanels()" :data-x="getPanelX(item)" :data-y="getPanelY(item)" :id="'svg-panel-' + item.col + '-' + item.row" :class="'svg-panel-col-' + item.col" :data-col="item.col" :data-row="item.row" :d="getPanelOutline(item)" fill="#fff" stroke="#000"></path>-->
             </g>
-            <path id="svg-room-outline-in" :d="getRoomOutline()" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
+            <path id="svg-room-outline-in" :d="roomOutline" stroke="red" stroke-opacity="0.5" stroke-linejoin="miter" stroke-width="30" fill="none"></path>
           </g>
         </g>
       </svg>
       <label>
-      <input v-model="panel.horizontal" type="number">
+      <input v-model="panel.horizontal" @input="horizontalMove" type="number">
       </label>
-      <label v-for="n in panel.col" >
-        <input v-model="panel.correction[n]" :data-col="n" type="number">
+      <label v-for="n in columnsCount" >
+        <input v-model="panel.correction[n - 1]" @input="verticalMove" :data-col="n - 2" type="number">
       </label>
-      <button @click="rotateOutline()">Rotate</button>
+      <button @click="rotatePlan()">Rotate</button>
     </div>
     <svg id="js-svg-panel-presentation" :width="(panel.w + 100) / 3" :height="(panel.h + 100) / 3" ></svg>
 
+
+    <div class="tab tab--calc">
+      <button @click="calculatePanels()">Calculate</button>
+      <p>Całe: {{ calc.whole }}</p>
+      <p>Cięte: {{ calc.cut }}</p>
+    </div>
   </main>
 
   <script src="bower_components/vue/dist/vue.js" type="text/javascript"></script>
